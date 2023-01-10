@@ -1,0 +1,27 @@
+name: test
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        target:
+          - { name: Linux, os: ubuntu-latest, triple: x86_64-unknown-linux-gnu }
+        version:
+          - stable
+    name: ${{ matrix.target.name }} / ${{ matrix.version }}
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Rust @ ${{ matrix.version }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.version }}-${{ matrix.target.triple }}
+          profile: minimal
+          override: true
+      - name: Cache Dependencies
+        uses: Swatinem/rust-cache@v1.2.0
+      - name: Run CI test for sandbox-cli
+        run: cd sandbox-cli && make -f ../Makefile ci-test
